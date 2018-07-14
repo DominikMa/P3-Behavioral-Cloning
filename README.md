@@ -1,7 +1,7 @@
 # **Behavioral Cloning**
 
 This repository contains my solution for the project "Behavioral Cloning" of the Udacity Self-Driving Car Engineer Nanodegree Program. The python code to generate the model could be found in [model.py](model.py).
-<!-- TODO add ref to udacity git https://github.com/udacity/CarND-Behavioral-Cloning-P3 -->
+More information on how to use the simulator can be found at [CarND-Behavioral-Cloning-P3](https://github.com/udacity/CarND-Behavioral-Cloning-P3)
 
 The following part of the README contains a writeup which describes how the behavioral cloning is achieved.
 
@@ -23,17 +23,13 @@ The goal of this project includes:
 
 [//]: # (Image References)
 
-[image1]: ./examples/placeholder.png "Model Visualization"
-[image2]: ./examples/placeholder.png "Grayscaling"
-[image3]: ./examples/placeholder_small.png "Recovery Image"
-[image4]: ./examples/placeholder_small.png "Recovery Image"
-[image5]: ./examples/placeholder_small.png "Recovery Image"
-[image6]: ./examples/placeholder_small.png "Normal Image"
-[image7]: ./examples/placeholder_small.png "Flipped Image"
-
-
-<!-- ## Rubric Points -->
-<!-- ### Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.   -->
+[model]: ./model.png "Model Architecture"
+[example_training_data]: ./images_writeup/example_training_data.png "Example training data"
+[histo_raw_track1]: ./images_writeup/histo_raw_track1.png "Histogram of raw training data"
+[histo_gauss0.005_track1]: ./images_writeup/histo_gauss0.005_track1.png "Histogram of training data with noise"
+[histo_gauss0.005_reducezero0.08_track1]: ./images_writeup/histo_gauss0.005_reducezero0.08_track1.png "Histogram of training data with noise and reduced zero measurements"
+[histo_gauss0.005_reducezero0.08_limit120_track1]: ./images_writeup/histo_gauss0.005_reducezero0.08_limit120_track1.png "Histogram of training data with noise, reduced zero measurements and a bin limit of 120"
+[histo_gauss0.005_reducezero0.08_limit120_track1+2]: ./images_writeup/histo_gauss0.005_reducezero0.08_limit120_track1+2.png "Histogram of training data with noise, reduced zero measurements and a bin limit of 120 for track one and two"
 
 ### Included Files
 
@@ -43,17 +39,24 @@ The required files are:
 * [model.py](model.py) which contains the code to prepare the training data and generate and train the model
 * [drive.py](drive.py) for driving the car in autonomous mode. It is nearly the original file with only few changes in the image preparation.
 * [model.h5](model.h5) the trained model
+* [output_video_track1.mp4](record_track1/output_video_track1.mp4) a video if the model driving through the first track
+
+Additional the following files are included:
+* [model.json](model.json) which contains the used parameters for training the model
+* [model.png](model.png) a plot of the model
+* [output_video_track2.mp4](record_track1/output_video_track2.mp4) a video if the model driving through the second track
+* [videos](videos/) four videos of the model driving each track forward and backward
 
 Using the Udacity provided simulator and my drive.py file, the car can be driven autonomously around the track by executing
 ```sh
 python drive.py model.h5
 ```
 
-### Model Architecture and Training Strategy
+### General Model Architecture and Training Strategy
 
 #### 1. The model architecture
 
- The model strongly follows the architecture of the nvidia paper <!-- TODO paper link --> with a few changes.  The first layer is for normalization. The following 1x1 convolutional layer follows the idea of let the model decide which is the best color space for the problem. The following layers are taken from the nvidia paper with relu activation and batch normalization after each convolutional layer. An additional dropout layer is added before the fully connected layers.
+ The model strongly follows the architecture of the [nvidia paper](https://arxiv.org/pdf/1604.07316v1.pdf) with a few changes.  The first layer is for normalization. The following 1x1 convolutional layer follows the idea of let the model decide which is the best color space for the problem. The following layers are taken from the nvidia paper with relu activation and batch normalization after each convolutional layer. An additional dropout layer is added before the fully connected layers.
 
 #### 2. Avoiding overfitting
 
@@ -65,60 +68,76 @@ The model used an adam optimizer, so the learning rate was not tuned manually. T
 
 #### 4. Appropriate training data
 
-Training data was chosen to keep the vehicle driving on the road. I used a combination of center lane driving, recovering from the left and right sides of the road ...
+Training data was chosen to keep the vehicle driving on the road. To get training data the simulator was. It was tried to drive in the center of the road. For track one there were multiple rounds captured forward, backward and on different graphic settings. For the second track only forward training data was generated to see if the model is able to generalize.
 
-For details about how I created the training data, see the next section.
+
 
 ### Model Architecture and Training Strategy
 
 #### 1. Solution Design Approach
 
-The overall strategy for deriving a model architecture was to ...
+Since using the model architecture presented in the udacity course as a starting point did not lead to an useful solution, the next step was to try the nvidia model. This architecture already results in a good first model. This architecture was the modified by adding batch normalization, dropout and an additional first layer.
 
-My first step was to use a convolution neural network model similar to the ... I thought this model might be appropriate because ...
+The generated data was split into a training and validation set. The model was then trained, validated and saved after each epoch. It was observed that the model converges pretty fast and gives good results for the train and test error.
 
-In order to gauge how well the model was working, I split my image and steering angle data into a training and validation set. I found that my first model had a low mean squared error on the training set but a high mean squared error on the validation set. This implied that the model was overfitting.
+Unfortunately at this point a low train or test error does not mean that the car drives well in the simulator.
 
-To combat the overfitting, I modified the model so that ...
+The reason for this was the distribution over the training data. This issue will be described later in detail.
 
-Then I ...
+A better preparation of the training data then results in a model which was able to drive safely through the first track at full speed.
+It also was able to drive the track backwards which is not surprising because there were some training data of the track backwards.
 
-The final step was to run the simulator to see how well the car was driving around track one. There were a few spots where the vehicle fell off the track... to improve the driving behavior in these cases, I ....
-
-At the end of the process, the vehicle is able to drive autonomously around the track without leaving the road.
+After this the model was trained again from scratch with the additional training data of track two. Here the model was trained for 10 epochs, some parameters were fine tuned and the model was again train for about 30 epochs. The resulting model was able to drive around track one forward and backward at full speed and around track two forward and backward at 11 MPH.
+It was able to drive track two backwards despite it has never seen training data with the track backward.
 
 #### 2. Final Model Architecture
 
-The final model architecture (model.py lines 18-24) consisted of a convolution neural network with the following layers and layer sizes ...
+The final model architecture consisted of a convolution neural network with the following layers and layer sizes:
 
-Here is a visualization of the architecture (note: visualizing the architecture is optional according to the project rubric)
+![model architecture][model]
 
-![alt text][image1]
+The first lambda layer does a normalization and mean centering.
+
+The architecture has 253,175 parameters in total from which 252,703 are trainable.
+
 
 #### 3. Creation of the Training Set & Training Process
+While choosing the architecture was straight forward getting good training data was quite difficult.
 
-To capture good driving behavior, I first recorded two laps on track one using center lane driving. Here is an example image of center lane driving:
+To capture good driving behavior, first four laps forward on track one for the the graphic settings fastest, fast, simple and beautiful each were recorded. Then the same backwards two labs. Here are example images of center lane driving:
 
-![alt text][image2]
-
-I then recorded the vehicle recovering from the left side and right sides of the road back to center so that the vehicle would learn to .... These images show what a recovery looks like starting from ... :
-
-![alt text][image3]
-![alt text][image4]
-![alt text][image5]
-
-Then I repeated this process on track two in order to get more data points.
-
-To augment the data sat, I also flipped images and angles thinking that this would ... For example, here is an image that has then been flipped:
-
-![alt text][image6]
-![alt text][image7]
-
-Etc ....
-
-After the collection process, I had X number of data points. I then preprocessed this data by ...
+![example training data][example_training_data]
 
 
-I finally randomly shuffled the data set and put Y% of the data into a validation set.
+To augment the data set the images and angles are flipped, resulting in 231960 training images.
 
-I used this training data for training the model. The validation set helped determine if the model was over or under fitting. The ideal number of epochs was Z as evidenced by ... I used an adam optimizer so that manually training the learning rate wasn't necessary.
+After the collection process, the training data consists of 115980 images for the first track. These images are converted to the HSV color space, cropped 60px of the top and 25px on the bottom and the resized to 200x66.
+
+Since using this training data does not result in a good driving model in had a deeper look on the data distribution.
+As one can see in the histogram of the training data the distribution does not look good for training. There are a lot of measurements which are zero and because the side images of these are used there are two additional spikes. Furthermore there are many small spikes. This is because the gamepad does not really gives continuous values but values with a fixed resolution.
+
+![histogram of raw training data][histo_raw_track1]
+
+Therefor in a first step some random gaussian noise is added to the measurements, resulting in the following histogram.
+
+![histogram of training data with noise][histo_gauss0.005_track1]
+
+This result in a way more smooth distribution of the measurements, but there are still three spikes.
+Using data with measurements of zero only with a probability of 0.08 will reduce these. Additionally we use the side images only with a probability of 0.4.
+
+![histogram of training data with noise and reduced zero measurements][histo_gauss0.005_reducezero0.08_track1]
+
+We can now see a smooth distribution. After this there are about 102000 training images left. Still we notice that measurements between -0.15 and 0.15 are frequent while others are rare. Using this training data the model will get a low error by simply outputting only measurements in this range, meaning there is no need of learning the rare measurements.
+Because we do not want our model to be biased about the measurement we need a more uniform distribution.
+To archive this we sort the measurements in bins of the size 0.005 and then limit the size of each bin to 120. Doing this gives the following result with 2600 training samples:
+
+![histogram of training data with noise, reduced zero measurements and a bin limit of 120][histo_gauss0.005_reducezero0.08_limit120_track1]
+
+This makes the rare samples more important.
+Using the training data from track one and two we got
+
+![histogram of training data with noise, reduced zero measurements and a bin limit of 120 for track one and two][histo_gauss0.005_reducezero0.08_limit120_track1+2]
+
+which looks way better for training.
+
+Training first with the hole data set and then fine tune the model with the data set with limited bin size gives the best result.
