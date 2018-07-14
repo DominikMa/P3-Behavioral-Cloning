@@ -122,7 +122,7 @@ Therefor in a first step some random gaussian noise is added to the measurements
 
 ![histogram of training data with noise][histo_gauss0.005_track1]
 
-This result in a way more smooth distribution of the measurements, but there are still three spikes.
+This results in a way more smooth distribution of the measurements, but there are still three spikes.
 Using data with measurements of zero only with a probability of 0.08 will reduce these. Additionally we use the side images only with a probability of 0.4.
 
 ![histogram of training data with noise and reduced zero measurements][histo_gauss0.005_reducezero0.08_track1]
@@ -140,4 +140,4 @@ Using the training data from track one and two we got
 
 which looks way better for training.
 
-Training first with the hole data set and then fine tune the model with the data set with limited bin size gives the best result.
+Training first with the whole data set and then fine tune the model with the data set with limited bin size gives the best result.
