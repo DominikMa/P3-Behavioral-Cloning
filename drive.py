@@ -16,6 +16,8 @@ from keras.models import load_model
 import h5py
 from keras import __version__ as keras_version
 
+import cv2
+
 sio = socketio.Server()
 app = Flask(__name__)
 model = None
@@ -44,7 +46,7 @@ class SimplePIController:
 
 
 controller = SimplePIController(0.1, 0.002)
-set_speed = 9
+set_speed = 30
 controller.set_desired(set_speed)
 
 
@@ -57,16 +59,19 @@ def telemetry(sid, data):
         throttle = data["throttle"]
         # The current speed of the car
         speed = data["speed"]
+        #speed = speed.replace(",", ".")
         # The current image from the center camera of the car
         imgString = data["image"]
         image = Image.open(BytesIO(base64.b64decode(imgString)))
         image_array = np.asarray(image)
-        steering_angle = float(model.predict(image_array[None, :, :, :], batch_size=1))
+        image_array_HSV = cv2.cvtColor(image_array, cv2.COLOR_RGB2HSV)
+        image_array_HSV = cv2.resize(image_array_HSV[60:135, :, :], (200,66))
+        steering_angle = float(model.predict(image_array_HSV[None, :, :, :], batch_size=1))
 
         throttle = controller.update(float(speed))
 
         print(steering_angle, throttle)
-        send_control(steering_angle, throttle)
+        send_control(steering_angle.__str__().replace(',','.'), throttle)
 
         # save frame
         if args.image_folder != '':
@@ -88,7 +93,8 @@ def send_control(steering_angle, throttle):
     sio.emit(
         "steer",
         data={
-            'steering_angle': steering_angle.__str__(),
+            'steering_angle': steering_angle.__str__().replace(',','.'),
+            #'steering_angle': steering_angle.__str__(),
             'throttle': throttle.__str__()
         },
         skip_sid=True)
