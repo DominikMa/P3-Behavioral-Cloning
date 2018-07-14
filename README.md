@@ -44,7 +44,7 @@ The required files are:
 Additional the following files are included:
 * [model.json](model.json) which contains the used parameters for training the model
 * [model.png](model.png) a plot of the model
-* [output_video_track2.mp4](record_track1/output_video_track2.mp4) a video if the model driving through the second track
+* [output_video_track2.mp4](record_track2/output_video_track2.mp4) a video if the model driving through the second track
 * [videos](videos/) four videos of the model driving each track forward and backward
 
 Using the Udacity provided simulator and my drive.py file, the car can be driven autonomously around the track by executing
